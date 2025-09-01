@@ -2,70 +2,228 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Lame Plugin</title>
+  <title>Template Wizard</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      padding: 16px;
+      padding: 0;
       margin: 0;
-      background: white;
-    }
-    
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    input {
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 8px;
+      background: #f8f9fa;
       font-size: 14px;
     }
     
-    button {
+    .header {
+      background: white;
+      padding: 16px;
+      border-bottom: 1px solid #e1e4e8;
+      text-align: center;
+    }
+    
+    .header h2 {
+      margin: 0;
+      color: #24292e;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .header p {
+      margin: 4px 0 0 0;
+      color: #586069;
+      font-size: 12px;
+    }
+    
+    .templates-container {
+      padding: 16px;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    
+    .template-card {
+      background: white;
+      border: 2px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .template-card:hover {
+      border-color: #0366d6;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .template-card.selected {
+      border-color: #0366d6;
+      background: #f1f8ff;
+    }
+    
+    .template-name {
+      font-weight: 600;
+      color: #24292e;
+      margin-bottom: 4px;
+    }
+    
+    .template-category {
+      font-size: 11px;
+      color: #0366d6;
+      background: #f1f8ff;
+      padding: 2px 6px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    
+    .template-description {
+      color: #586069;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    
+    .actions {
+      padding: 16px;
+      background: white;
+      border-top: 1px solid #e1e4e8;
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn {
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       padding: 8px 16px;
       font-size: 14px;
       cursor: pointer;
-      background: #007acc;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+      flex: 1;
+    }
+    
+    .btn-primary {
+      background: #0366d6;
       color: white;
     }
     
-    button:hover {
-      background: #005a9e;
+    .btn-primary:hover:not(:disabled) {
+      background: #0256cc;
     }
     
-    .cancel-btn {
-      background: #ccc;
-      color: black;
+    .btn-primary:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
     }
     
-    .cancel-btn:hover {
-      background: #aaa;
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+    
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 32px;
+      color: #586069;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #e1e4e8;
+      border-top: 2px solid #0366d6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 8px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h3>Create Rectangles</h3>
-    <p>Count: <input id="count" type="number" value="5" min="1" max="100"></p>
-    <button id="create">Create</button>
-    <button id="cancel" class="cancel-btn">Cancel</button>
+  <div class="header">
+    <h2>🧙‍♂️ Template Wizard</h2>
+    <p>Choose a template to get started quickly</p>
+  </div>
+
+  <div id="loading" class="loading">
+    <div class="loading-spinner"></div>
+    <div>Loading templates...</div>
+  </div>
+
+  <div id="templates" class="templates-container" style="display: none;">
+    <!-- Templates will be populated by JavaScript -->
+  </div>
+
+  <div class="actions">
+    <button id="createBtn" class="btn btn-primary" disabled>Create Template</button>
+    <button id="cancelBtn" class="btn btn-secondary">Cancel</button>
   </div>
 
   <script>
-    document.getElementById('create').onclick = () => {
-      const textbox = document.getElementById('count');
-      const count = parseInt(textbox.value, 10);
-      parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*');
+    let availableTemplates = [];
+    let selectedTemplateId = null;
+
+    // Listen for messages from plugin
+    window.addEventListener('message', (event) => {
+      const msg = event.data.pluginMessage;
+      
+      if (msg.type === 'templates-loaded') {
+        availableTemplates = msg.templates;
+        renderTemplates();
+      }
+    });
+
+    function renderTemplates() {
+      const loadingEl = document.getElementById('loading');
+      const templatesEl = document.getElementById('templates');
+      
+      loadingEl.style.display = 'none';
+      templatesEl.style.display = 'block';
+
+      templatesEl.innerHTML = availableTemplates.map(template => `
+        <div class="template-card" data-template-id="${template.id}">
+          <div class="template-name">${template.name}</div>
+          <div class="template-category">${template.category}</div>
+          <div class="template-description">${template.description}</div>
+        </div>
+      `).join('');
+
+      // Add click handlers
+      document.querySelectorAll('.template-card').forEach(card => {
+        card.addEventListener('click', () => {
+          // Remove previous selection
+          document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+          
+          // Select current card
+          card.classList.add('selected');
+          selectedTemplateId = card.dataset.templateId;
+          
+          // Enable create button
+          document.getElementById('createBtn').disabled = false;
+        });
+      });
     }
 
-    document.getElementById('cancel').onclick = () => {
+    document.getElementById('createBtn').addEventListener('click', () => {
+      if (selectedTemplateId) {
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'generate-template', 
+            templateId: selectedTemplateId 
+          } 
+        }, '*');
+      }
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => {
       parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
-    }
+    });
   </script>
 </body>
 </html>
