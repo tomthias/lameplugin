@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lame Plugin</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 16px;
+      margin: 0;
+      background: white;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    input {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 14px;
+    }
+    
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #007acc;
+      color: white;
+    }
+    
+    button:hover {
+      background: #005a9e;
+    }
+    
+    .cancel-btn {
+      background: #ccc;
+      color: black;
+    }
+    
+    .cancel-btn:hover {
+      background: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3>Create Rectangles</h3>
+    <p>Count: <input id="count" type="number" value="5" min="1" max="100"></p>
+    <button id="create">Create</button>
+    <button id="cancel" class="cancel-btn">Cancel</button>
+  </div>
+
+  <script>
+    document.getElementById('create').onclick = () => {
+      const textbox = document.getElementById('count');
+      const count = parseInt(textbox.value, 10);
+      parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*');
+    }
+
+    document.getElementById('cancel').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    }
+  </script>
+</body>
+</html>

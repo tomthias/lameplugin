@@ -1,0 +1,14 @@
+{
+  "name": "lame-figjam-plugin",
+  "version": "1.0.0",
+  "description": "FigJam plugin scaffolding",
+  "main": "code.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.95.0",
+    "typescript": "^5.3.3"
+  }
+}
